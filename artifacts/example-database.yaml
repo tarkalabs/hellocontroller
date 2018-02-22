@@ -1,0 +1,7 @@
+apiVersion: hellocontroller.tarkalabs.com/v1alpha
+kind: Database
+metadata:
+  name: mydb
+spec:
+  databaseName: mydb
+  secretName: mydbSecret

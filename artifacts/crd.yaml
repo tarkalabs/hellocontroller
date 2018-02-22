@@ -1,0 +1,20 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: databases.hellocontroller.tarkalabs.com
+spec:
+  group: hellocontroller.tarkalabs.com
+  version: v1alpha1
+  names:
+    kind: Database
+    plural: databases
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          properties:
+            databaseName:
+              type: string
+            secretName:
+              type: string
