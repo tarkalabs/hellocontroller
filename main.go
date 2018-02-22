@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -21,6 +23,15 @@ func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 }
 func main() {
+	stop := make(chan struct{})
+	signalChan := make(chan os.Signal, 2)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-signalChan
+		close(stop)
+		<-signalChan
+		os.Exit(1)
+	}()
 	flag.Parse()
 	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
@@ -54,5 +65,6 @@ func main() {
 	})
 
 	log.Infof("Successfully connected to kubernetes %v", clientSet)
-
+	go informerFactory.Start(stop)
+	<-stop
 }
