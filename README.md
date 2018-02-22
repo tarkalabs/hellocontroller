@@ -5,4 +5,4 @@ Code created as part of Kubernetes Workshop.
 
 # Install
 
-    go install github.com/tarkalabs/hellocontroller
+    go get -u github.com/tarkalabs/hellocontroller
