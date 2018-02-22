@@ -8,8 +8,12 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	v1alpha "github.com/tarkalabs/hellocontroller/pkg/apis/hellocontroller/v1alpha"
+	clientset "github.com/tarkalabs/hellocontroller/pkg/client/clientset/versioned"
+	hcInformers "github.com/tarkalabs/hellocontroller/pkg/client/informers/externalversions"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -39,8 +43,21 @@ func main() {
 	if err != nil {
 		log.Errorf("Unable to create client : %s", err.Error())
 	}
+	hcClientSet, err := clientset.NewForConfig(cfg)
+	if err != nil {
+		log.Error("Unable to create client set for hello controller %s", err.Error())
+	}
+	hcInformerFactory := hcInformers.NewSharedInformerFactory(hcClientSet, 10*time.Second)
 	informerFactory := informers.NewSharedInformerFactory(clientSet, 10*time.Second)
-
+	go hcInformerFactory.Start(stop)
+	dbInformer := hcInformerFactory.Hellocontroller().V1alpha().Databases().Informer()
+	dbInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			if db, ok := obj.(*v1alpha.Database); ok {
+				log.Infof("Added database %s ", db.Spec.DatabaseName)
+			}
+		},
+	})
 	podInformer := informerFactory.Core().V1().Pods()
 	NewController(podInformer).Run()
 	log.Infof("Successfully connected to kubernetes %v", clientSet)
