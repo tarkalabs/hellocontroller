@@ -1,2 +1,4 @@
 vendor
 hellocontroller
+pkg/apis/hellocontroller/v1alpha/zz*
+pkg/client
